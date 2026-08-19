@@ -661,6 +661,15 @@
 
                                     <h4 class="font-medium text-gray-900 dark:text-white mb-2">{{ $ticket->name }}</h4>
 
+                                    @if ($ticket->epic)
+                                        <div class="mb-3">
+                                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 text-xs font-medium">
+                                                <x-heroicon-m-flag class="w-3.5 h-3.5" />
+                                                <span class="truncate">{{ $ticket->epic->name }}</span>
+                                            </span>
+                                        </div>
+                                    @endif
+
                                     @if ($ticket->description)
                                         <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
                                             {{ \Illuminate\Support\Str::limit(strip_tags($ticket->description), 100) }}

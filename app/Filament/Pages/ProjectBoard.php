@@ -141,8 +141,9 @@ class ProjectBoard extends Page
                         'status:id,name,color,is_completed',
                         'priority:id,name,color',
                         'creator:id,name',
+                        'epic:id,name',
                     ])
-                        ->select('id', 'project_id', 'ticket_status_id', 'priority_id', 'name', 'description', 'uuid', 'due_date', 'created_at', 'updated_at', 'created_by')
+                        ->select('id', 'project_id', 'ticket_status_id', 'priority_id', 'epic_id', 'name', 'description', 'uuid', 'due_date', 'created_at', 'updated_at', 'created_by')
                         ->when(! empty($this->selectedUserIds), function ($query) {
                             $query->whereHas('assignees', function ($assigneeQuery) {
                                 $assigneeQuery->whereIn('users.id', $this->selectedUserIds);

@@ -11,10 +11,15 @@ class Login extends BaseLogin
     public function mount(): void
     {
         parent::mount();
-        
+
         FilamentView::registerRenderHook(
             PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
             fn (): string => view('filament.components.google-login-button')->render(),
+        );
+
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::SIMPLE_LAYOUT_START,
+            fn (): string => view('filament.components.bytes-loader')->render(),
         );
     }
 }

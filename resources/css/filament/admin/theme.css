@@ -2,3 +2,85 @@
 
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
+
+/* ------------------------------------------------------------------ */
+/*  Byte-s brand palette (byte-s.com)                                  */
+/*  Gradient: #003784 -> #4aa5f0   |   Dark navy: #171d34 / #111426    */
+/* ------------------------------------------------------------------ */
+:root {
+	--bytes-deep-blue: #003784;
+	--bytes-sky-blue: #4aa5f0;
+	--bytes-navy: #171d34;
+	--bytes-navy-deep: #111426;
+	--bytes-accent: #fc466b;
+}
+
+/* ============================ LIGHT MODE ============================ */
+.fi-body {
+	background-color: #f4f8fe;
+}
+
+.fi-sidebar {
+	background-color: #ffffff;
+	border-right-color: #dbeafe;
+}
+
+.fi-topbar {
+	background-color: #ffffff;
+	border-bottom-color: #dbeafe;
+}
+
+/* Thin gradient accent along the top of the sidebar for the Byte-s identity */
+:not(.fi-body-has-topbar) .fi-sidebar-header {
+	box-shadow: inset 0 3px 0 0 #4aa5f0;
+}
+
+/* Gradient accent under the topbar */
+.fi-topbar {
+	border-bottom: 3px solid transparent;
+	border-image: linear-gradient(to right, #003784, #4aa5f0) 1;
+}
+
+/* Login / auth card gets the signature gradient on its top edge */
+.fi-simple-main {
+	position: relative;
+}
+
+.fi-simple-main::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 4px;
+	background: linear-gradient(to right, #003784 0%, #4aa5f0 100%);
+	border-radius: 0.75rem 0.75rem 0 0;
+}
+
+/* ============================ DARK MODE ============================= */
+.dark .fi-body {
+	background-color: #171d34;
+}
+
+.dark .fi-sidebar {
+	background-color: #111426;
+	border-right-color: #2a3561;
+}
+
+.dark .fi-topbar {
+	background-color: #111426;
+	border-bottom-color: #2a3561;
+}
+
+/* Byte-s gradient header behind the white wordmark logo */
+.dark .fi-sidebar-header {
+	background: linear-gradient(135deg, #003784 0%, #4aa5f0 100%);
+}
+
+.dark .fi-simple-main {
+	background-color: #111426;
+}
+
+.dark .fi-simple-main::before {
+	background: linear-gradient(to right, #003784 0%, #4aa5f0 100%);
+}

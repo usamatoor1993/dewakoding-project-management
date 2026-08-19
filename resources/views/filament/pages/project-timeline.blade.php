@@ -314,16 +314,19 @@
                     gantt.clearAll();
                     gantt.parse(ganttData);
 
-                    // ✨ Add today marker line
-                    const today = new Date();
-                    gantt.addMarker({
-                        start_date: today,
-                        css: "today",
-                        text: "Today"
-                    });
+                    // Add the marker only when the loaded build exposes the marker API.
+                    if (typeof gantt.addMarker === 'function') {
+                        gantt.addMarker({
+                            start_date: new Date(),
+                            css: "today",
+                            text: "Today"
+                        });
+                    } else {
+                        console.warn('dhtmlxGantt marker plugin is unavailable; rendering without today marker');
+                    }
 
                     console.log('Page dhtmlxGantt initialized successfully with', ganttData.data.length,
-                        'projects and today marker');
+                        'projects');
 
                 } catch (error) {
                     console.error('Error initializing Page dhtmlxGantt:', error);

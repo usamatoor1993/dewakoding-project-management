@@ -31,10 +31,16 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->brandName('Bytes')
+            ->brandLogo(asset('img/bytes/bytes-logo-blue.png'))
+            ->darkModeBrandLogo(asset('img/bytes/bytes-logo-write.png'))
+            ->brandLogoHeight('2rem')
+            ->favicon(asset('img/bytes/bytes-logo-blue.png'))
             ->login(Login::class)
             ->registration()
+            ->darkMode()
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => Color::hex('#4aa5f0'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
