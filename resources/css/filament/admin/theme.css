@@ -4,7 +4,7 @@
 @source '../../../../resources/views/filament/**/*';
 
 /* ------------------------------------------------------------------ */
-/*  Byte-s brand palette (byte-s.com)                                  */
+/*  Bytes brand palette (byte-s.com)                                  */
 /*  Gradient: #003784 -> #4aa5f0   |   Dark navy: #171d34 / #111426    */
 /* ------------------------------------------------------------------ */
 :root {
@@ -30,7 +30,7 @@
 	border-bottom-color: #dbeafe;
 }
 
-/* Thin gradient accent along the top of the sidebar for the Byte-s identity */
+/* Thin gradient accent along the top of the sidebar for the Bytes identity */
 :not(.fi-body-has-topbar) .fi-sidebar-header {
 	box-shadow: inset 0 3px 0 0 #4aa5f0;
 }
@@ -39,22 +39,6 @@
 .fi-topbar {
 	border-bottom: 3px solid transparent;
 	border-image: linear-gradient(to right, #003784, #4aa5f0) 1;
-}
-
-/* Login / auth card gets the signature gradient on its top edge */
-.fi-simple-main {
-	position: relative;
-}
-
-.fi-simple-main::before {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 4px;
-	background: linear-gradient(to right, #003784 0%, #4aa5f0 100%);
-	border-radius: 0.75rem 0.75rem 0 0;
 }
 
 /* ============================ DARK MODE ============================= */
@@ -72,15 +56,179 @@
 	border-bottom-color: #2a3561;
 }
 
-/* Byte-s gradient header behind the white wordmark logo */
+/* Bytes gradient header behind the white wordmark logo */
 .dark .fi-sidebar-header {
 	background: linear-gradient(135deg, #003784 0%, #4aa5f0 100%);
 }
 
-.dark .fi-simple-main {
-	background-color: #111426;
+/* =================================================================== */
+/*  PREMIUM LOGIN / AUTH PAGE                                          */
+/* =================================================================== */
+
+/* ----- Full-screen backdrop with Bytes radial glows ----- */
+.fi-simple-layout {
+	position: relative;
+	overflow: hidden;
+	background:
+		radial-gradient(ellipse 55% 45% at 12% -5%, rgba(0, 55, 132, 0.12), transparent 60%),
+		radial-gradient(ellipse 60% 50% at 88% 105%, rgba(74, 165, 240, 0.22), transparent 60%),
+		#eef4fc;
 }
 
-.dark .fi-simple-main::before {
-	background: linear-gradient(to right, #003784 0%, #4aa5f0 100%);
+.dark .fi-simple-layout {
+	background:
+		radial-gradient(ellipse 55% 45% at 12% -5%, rgba(0, 55, 132, 0.55), transparent 60%),
+		radial-gradient(ellipse 60% 50% at 88% 105%, rgba(74, 165, 240, 0.35), transparent 60%),
+		radial-gradient(ellipse 40% 40% at 75% 15%, rgba(74, 165, 240, 0.12), transparent 55%),
+		#0f1629;
+}
+
+/* Decorative glowing orbs */
+.fi-simple-layout::before,
+.fi-simple-layout::after {
+	content: '';
+	position: absolute;
+	border-radius: 50%;
+	filter: blur(90px);
+	pointer-events: none;
+	z-index: 0;
+}
+
+.fi-simple-layout::before {
+	width: 420px;
+	height: 420px;
+	top: -120px;
+	left: -120px;
+	background: radial-gradient(circle, rgba(0, 55, 132, 0.55), transparent 70%);
+}
+
+.fi-simple-layout::after {
+	width: 480px;
+	height: 480px;
+	bottom: -140px;
+	right: -120px;
+	background: radial-gradient(circle, rgba(74, 165, 240, 0.5), transparent 70%);
+}
+
+.dark .fi-simple-layout::before {
+	background: radial-gradient(circle, rgba(0, 55, 132, 0.6), transparent 70%);
+}
+
+.dark .fi-simple-layout::after {
+	background: radial-gradient(circle, rgba(74, 165, 240, 0.55), transparent 70%);
+}
+
+/* ----- The glassy auth card with a Bytes gradient border ----- */
+.fi-simple-main {
+	position: relative;
+	z-index: 1;
+	border-radius: 1.5rem;
+	padding: 2.5rem;
+	background: rgba(255, 255, 255, 0.92);
+	backdrop-filter: blur(18px);
+	-webkit-backdrop-filter: blur(18px);
+	border: 1px solid rgba(74, 165, 240, 0.2);
+	box-shadow: 0 25px 60px -18px rgba(0, 55, 132, 0.3);
+	overflow: hidden;
+}
+
+.dark .fi-simple-main {
+	background: rgba(17, 20, 38, 0.78);
+	border: 1px solid rgba(74, 165, 240, 0.22);
+	box-shadow:
+		0 30px 70px -18px rgba(0, 0, 0, 0.75),
+		0 0 50px -12px rgba(74, 165, 240, 0.28);
+}
+
+/* Gradient ring around the card */
+.fi-simple-main::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	padding: 1px;
+	background: linear-gradient(135deg, #003784 0%, #4aa5f0 50%, #fc466b 100%);
+	-webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+	-webkit-mask-composite: xor;
+	mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+	mask-composite: exclude;
+	pointer-events: none;
+	z-index: 2;
+}
+
+/* ----- Logo ----- */
+.fi-simple-header .fi-logo {
+	margin-bottom: 1rem;
+}
+
+.fi-simple-header .fi-logo img {
+	height: 3rem;
+	width: auto;
+	filter: drop-shadow(0 8px 22px rgba(74, 165, 240, 0.5));
+}
+
+/* ----- Heading with the Bytes gradient text ----- */
+.fi-simple-header-heading {
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	background: linear-gradient(90deg, #003784 0%, #4aa5f0 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	color: transparent;
+}
+
+.fi-simple-header-subheading {
+	color: #5b6b85;
+}
+
+.dark .fi-simple-header-subheading {
+	color: rgba(255, 255, 255, 0.6);
+}
+
+/* ----- Form inputs ----- */
+.fi-simple-main .fi-input-wrp {
+	border-radius: 0.8rem;
+	border: 1px solid rgba(74, 165, 240, 0.25);
+	background: rgba(255, 255, 255, 0.05);
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dark .fi-simple-main .fi-input-wrp {
+	border-color: rgba(74, 165, 240, 0.3);
+	background: rgba(255, 255, 255, 0.04);
+}
+
+.fi-simple-main .fi-input-wrp:focus-within {
+	border-color: #4aa5f0;
+	box-shadow: 0 0 0 3px rgba(74, 165, 240, 0.25);
+}
+
+/* ----- Submit button: Bytes gradient ----- */
+.fi-simple-main .fi-ac-btn-action[type='submit'] {
+	background: linear-gradient(135deg, #003784 0%, #4aa5f0 100%);
+	border: none;
+	border-radius: 0.8rem;
+	box-shadow: 0 12px 28px -8px rgba(74, 165, 240, 0.55);
+	transition: box-shadow 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+}
+
+.fi-simple-main .fi-ac-btn-action[type='submit']:hover {
+	box-shadow: 0 16px 34px -8px rgba(74, 165, 240, 0.7);
+	filter: brightness(1.08);
+	transform: translateY(-1px);
+}
+
+.fi-simple-main .fi-ac-btn-action[type='submit']:active {
+	transform: translateY(0);
+}
+
+/* ----- Auth links ----- */
+.fi-simple-main .fi-link.fi-color-primary {
+	font-weight: 600;
+	transition: opacity 0.2s ease;
+}
+
+.fi-simple-main .fi-link.fi-color-primary:hover {
+	opacity: 0.8;
 }

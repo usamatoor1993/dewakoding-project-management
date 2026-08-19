@@ -62,7 +62,7 @@
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
                     <a href="{{ url('/') }}" class="flex items-center">
-                        <img src="{{ asset('img/bytes/bytes-logo-write.png') }}" alt="Byte-s"
+                        <img src="{{ asset('img/bytes/bytes-logo-write.png') }}" alt="Bytes"
                             class="h-8 w-auto" />
                     </a>
                 </div>

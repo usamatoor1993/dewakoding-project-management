@@ -2,7 +2,7 @@
     <div class="bytes-loader__container">
         <div class="bytes-loader-content">
             <div class="bytes-loader-logo">
-                <img src="{{ asset('img/bytes/bytes-logo-write.png') }}" alt="Byte-s" />
+                <img src="{{ asset('img/bytes/bytes-logo-write.png') }}" alt="Bytes" />
             </div>
         </div>
     </div>
