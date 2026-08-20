@@ -220,7 +220,6 @@
 
                 init() {
                     this.$nextTick(() => {
-                        this.removeAllEventListeners();
                         this.attachAllEventListeners();
                         this.setupTouchScrolling();
                         this.isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -233,7 +232,6 @@
                         if (!document.hidden) {
                             this.saveScrollPositions();
                             setTimeout(() => {
-                                this.removeAllEventListeners();
                                 this.attachAllEventListeners();
                                 this.restoreScrollPositions();
                             }, 100);
@@ -243,7 +241,6 @@
                     window.addEventListener('focus', () => {
                         this.saveScrollPositions();
                         setTimeout(() => {
-                            this.removeAllEventListeners();
                             this.attachAllEventListeners();
                             this.restoreScrollPositions();
                         }, 100);
@@ -252,7 +249,6 @@
                     window.addEventListener('popstate', () => {
                         this.saveScrollPositions();
                         setTimeout(() => {
-                            this.removeAllEventListeners();
                             this.attachAllEventListeners();
                             this.restoreScrollPositions();
                         }, 200);
@@ -261,7 +257,6 @@
                     document.addEventListener('livewire:navigated', () => {
                         this.saveScrollPositions();
                         setTimeout(() => {
-                            this.removeAllEventListeners();
                             this.attachAllEventListeners();
                             this.restoreScrollPositions();
                         }, 300);
@@ -270,7 +265,6 @@
                     document.addEventListener('livewire:load', () => {
                         this.saveScrollPositions();
                         setTimeout(() => {
-                            this.removeAllEventListeners();
                             this.attachAllEventListeners();
                             this.restoreScrollPositions();
                         }, 100);
@@ -279,7 +273,6 @@
                     document.addEventListener('livewire:updated', () => {
                         this.saveScrollPositions();
                         setTimeout(() => {
-                            this.removeAllEventListeners();
                             this.attachAllEventListeners();
                             this.restoreScrollPositions();
                         }, 100);
@@ -288,7 +281,6 @@
                     window.addEventListener('ticket-updated', () => {
                         this.saveScrollPositions();
                         setTimeout(() => {
-                            this.removeAllEventListeners();
                             this.attachAllEventListeners();
                             this.restoreScrollPositions();
                         }, 150);
@@ -304,19 +296,7 @@
                 },
 
                 ensureDragDropInitialized() {
-                    const tickets = document.querySelectorAll('.ticket-card');
-                    let needsReinitialization = false;
-
-                    tickets.forEach(ticket => {
-                        if (!ticket.getAttribute('draggable') || ticket.getAttribute('draggable') !== 'true') {
-                            needsReinitialization = true;
-                        }
-                    });
-
-                    if (needsReinitialization && tickets.length > 0) {
-                        this.removeAllEventListeners();
-                        this.attachAllEventListeners();
-                    }
+                    this.attachAllEventListeners();
                 },
 
                 setupTouchScrolling() {
@@ -343,26 +323,6 @@
                     }, { passive: false });
                 },
 
-                removeAllEventListeners() {
-                    const tickets = document.querySelectorAll('.ticket-card');
-                    tickets.forEach(ticket => {
-                        ticket.removeAttribute('draggable');
-                        const newTicket = ticket.cloneNode(true);
-                        ticket.parentNode.replaceChild(newTicket, ticket);
-                    });
-
-                    const columns = document.querySelectorAll('.status-column');
-                    columns.forEach(column => {
-                        const newColumn = column.cloneNode(false);
-                        while (column.firstChild) {
-                            newColumn.appendChild(column.firstChild);
-                        }
-                        if (column.parentNode) {
-                            column.parentNode.replaceChild(newColumn, column);
-                        }
-                    });
-                },
-
                 attachAllEventListeners() {
                     @if(!$this->canMoveTickets())
                         return;
@@ -370,6 +330,10 @@
 
                     const tickets = document.querySelectorAll('.ticket-card');
                     tickets.forEach(ticket => {
+                        if (ticket.dataset.boardBound === 'true') {
+                            return;
+                        }
+                        ticket.dataset.boardBound = 'true';
                         ticket.setAttribute('draggable', true);
 
                         ticket.addEventListener('dragstart', (e) => {
@@ -472,6 +436,10 @@
 
                     const columns = document.querySelectorAll('.status-column');
                     columns.forEach(column => {
+                        if (column.dataset.boardBound === 'true') {
+                            return;
+                        }
+                        column.dataset.boardBound = 'true';
                         column.addEventListener('dragover', (e) => {
                             e.preventDefault();
                             e.dataTransfer.dropEffect = 'move';
