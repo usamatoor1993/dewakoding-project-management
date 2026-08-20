@@ -30,25 +30,28 @@ class ProjectTimeline extends Page
         $this->ganttData = $this->getGanttData();
     }
     
+    public function canViewAllProjects(): bool
+    {
+        return auth()->user() && method_exists(auth()->user(), 'hasRole')
+            && auth()->user()->hasAnyRole(['super_admin', 'admin']);
+    }
+
     public function getProjects()
     {
         $query = Project::query()
             ->whereNotNull('start_date')
-            ->whereNotNull('end_date')
-            ->orderBy('start_date');
-        
-        $userIsSuperAdmin = auth()->user() && (
-            (method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('super_admin'))
-            || (isset(auth()->user()->role) && auth()->user()->role === 'super_admin')
-        );
+            ->whereNotNull('end_date');
 
-        if (!$userIsSuperAdmin) {
+        if (!$this->canViewAllProjects()) {
             $query->whereHas('members', function ($query) {
                 $query->where('user_id', auth()->id());
             });
         }
-        
-        return $query->get();
+
+        return $query
+            ->orderBy('end_date')
+            ->orderBy('start_date')
+            ->get();
     }
     
     public function getGanttData(): array
@@ -60,8 +63,8 @@ class ProjectTimeline extends Page
         }
         
         $ganttTasks = [];
-        
-        foreach ($projects as $project) {
+
+        foreach ($projects as $index => $project) {
             $startDate = Carbon::parse($project->start_date);
             $endDate = Carbon::parse($project->end_date);
             $totalDays = $startDate->diffInDays($endDate) + 1;
@@ -95,6 +98,7 @@ class ProjectTimeline extends Page
                 'end_date' => $endDate->format('d-m-Y H:i'),
                 'duration' => $totalDays,
                 'progress' => $progress,
+                'priority' => $index + 1,
                 'status' => $status,
                 'color' => $color,
                 'is_overdue' => $isOverdue
@@ -112,14 +116,8 @@ class ProjectTimeline extends Page
         $allQuery = Project::query()
             ->whereNotNull('start_date')
             ->whereNotNull('end_date');
-        
-        // Apply role-based filtering
-        $userIsSuperAdmin = auth()->user() && (
-            (method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('super_admin'))
-            || (isset(auth()->user()->role) && auth()->user()->role === 'super_admin')
-        );
 
-        if (!$userIsSuperAdmin) {
+        if (!$this->canViewAllProjects()) {
             $allQuery->whereHas('members', function ($query) {
                 $query->where('user_id', auth()->id());
             });

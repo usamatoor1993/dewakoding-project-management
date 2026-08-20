@@ -23,7 +23,7 @@
                         $headerHeight = 80;
                         $calculatedHeight = max($minHeight, $projectCount * $rowHeight + $headerHeight);
                     @endphp
-                    <div id="gantt_here" style="width:100%; height:{{ $calculatedHeight }}px;"></div>
+                    <div id="gantt_here_project_timeline" style="width:100%; height:{{ $calculatedHeight }}px;"></div>
                 @else
                     <div class="flex flex-col items-center justify-center h-64 text-gray-500 gap-4">
                         <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,8 +196,14 @@
     @push('scripts')
         <script src="https://cdn.dhtmlx.com/gantt/edge/dhtmlxgantt.js"></script>
         <script>
-            let ganttPageInitialized = false;
-            let ganttData = @json($ganttData ?? ['data' => [], 'links' => []]);
+            window.projectTimelineGanttState = window.projectTimelineGanttState || {
+                initialized: false,
+                listenerAttached: false
+            };
+
+            function getGanttData() {
+                return @json($ganttData ?? ['data' => [], 'links' => []]);
+            }
 
             function waitForGantt(callback) {
                 if (typeof gantt !== 'undefined') {
@@ -207,144 +213,151 @@
                 }
             }
 
-            document.addEventListener('DOMContentLoaded', function() {
-                console.log('Page DOM ready, waiting for dhtmlxGantt...');
-                waitForGantt(() => {
-                    console.log('dhtmlxGantt loaded, initializing...');
-                    initializeGanttPage();
-                });
-            });
-
-            document.addEventListener('livewire:navigated', function() {
-                console.log('Livewire navigated, reinitializing gantt...');
-                if (ganttPageInitialized) {
-                    gantt.clearAll();
-                    ganttPageInitialized = false;
-                }
-                waitForGantt(() => {
-                    initializeGanttPage();
-                });
-            });
-
             function initializeGanttPage() {
-                try {
-                    console.log('Page dhtmlxGantt data:', ganttData);
-
-                    if (!ganttData.data || ganttData.data.length === 0) {
-                        console.log('No page gantt data available');
-                        return;
-                    }
-
-                    const container = document.getElementById('gantt_here');
-                    if (!container) {
-                        console.error('Page Gantt container not found');
-                        return;
-                    }
-
-                    // ✨ Enable marker plugin for today line
-                    gantt.plugins({
-                        marker: true
-                    });
-
-                    gantt.config.date_format = "%d-%m-%Y %H:%i";
-
-                    gantt.config.scales = [{
-                            unit: "year",
-                            step: 1,
-                            format: "%Y"
-                        },
-                        {
-                            unit: "month",
-                            step: 1,
-                            format: "%F"
-                        }
-                    ];
-
-                    gantt.config.readonly = true;
-                    gantt.config.drag_move = false;
-                    gantt.config.drag_resize = false;
-                    gantt.config.drag_progress = false;
-                    gantt.config.drag_links = false;
-
-                    gantt.config.grid_width = 350;
-                    gantt.config.row_height = 40;
-                    gantt.config.task_height = 32;
-                    gantt.config.bar_height = 24;
-
-                    gantt.config.columns = [{
-                            name: "text",
-                            label: "Project Name",
-                            width: 200,
-                            tree: true
-                        },
-                        {
-                            name: "status",
-                            label: "Status",
-                            width: 100,
-                            align: "center"
-                        },
-                        {
-                            name: "duration",
-                            label: "Duration",
-                            width: 50,
-                            align: "center"
-                        }
-                    ];
-
-                    gantt.templates.task_class = function(start, end, task) {
-                        return task.is_overdue ? "overdue" : "";
-                    };
-
-                    gantt.templates.tooltip_text = function(start, end, task) {
-                        return `<b>Project:</b> ${task.text}<br/>
-                                <b>Status:</b> ${task.status}<br/>
-                                <b>Duration:</b> ${task.duration} day(s)<br/>
-                                <b>Progress:</b> ${Math.round(task.progress * 100)}%<br/>
-                                <b>Start:</b> ${gantt.templates.tooltip_date_format(start)}<br/>
-                                <b>End:</b> ${gantt.templates.tooltip_date_format(end)}
-                                ${task.is_overdue ? '<br/><b style="color: #ef4444;">⚠️ OVERDUE</b>' : ''}`;
-                    };
-
-                    if (!ganttPageInitialized) {
-                        gantt.init("gantt_here");
-                        ganttPageInitialized = true;
-                        console.log('Gantt initialized for the first time');
-                    }
-
-                    gantt.clearAll();
-                    gantt.parse(ganttData);
-
-                    // Add the marker only when the loaded build exposes the marker API.
-                    if (typeof gantt.addMarker === 'function') {
-                        gantt.addMarker({
-                            start_date: new Date(),
-                            css: "today",
-                            text: "Today"
-                        });
-                    } else {
-                        console.warn('dhtmlxGantt marker plugin is unavailable; rendering without today marker');
-                    }
-
-                    console.log('Page dhtmlxGantt initialized successfully with', ganttData.data.length,
-                        'projects');
-
-                } catch (error) {
-                    console.error('Error initializing Page dhtmlxGantt:', error);
-
-                    const container = document.getElementById('gantt_here');
-                    if (container) {
-                        container.innerHTML = `
-                            <div class="flex flex-col items-center justify-center h-64 text-red-500 gap-4">
-                                <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <h3 class="text-lg font-medium">Error loading timeline</h3>
-                                <p class="text-sm">Please refresh the page or contact support</p>
-                                <p class="text-xs">Error: ${error.message}</p>
-                            </div>
-                        `;
-                    }
+                if (!document.getElementById('gantt_here_project_timeline')) {
+                    return;
                 }
+
+                waitForGantt(() => {
+                    try {
+                        const ganttData = getGanttData();
+                        console.log('Page dhtmlxGantt data:', ganttData);
+
+                        if (!ganttData.data || ganttData.data.length === 0) {
+                            console.log('No page gantt data available');
+                            return;
+                        }
+
+                        const container = document.getElementById('gantt_here_project_timeline');
+                        if (!container) {
+                            console.error('Page Gantt container not found');
+                            return;
+                        }
+
+                        gantt.plugins({
+                            marker: true
+                        });
+
+                        gantt.config.date_format = "%d-%m-%Y %H:%i";
+
+                        gantt.config.scales = [{
+                                unit: "year",
+                                step: 1,
+                                format: "%Y"
+                            },
+                            {
+                                unit: "month",
+                                step: 1,
+                                format: "%F"
+                            }
+                        ];
+
+                        gantt.config.readonly = true;
+                        gantt.config.drag_move = false;
+                        gantt.config.drag_resize = false;
+                        gantt.config.drag_progress = false;
+                        gantt.config.drag_links = false;
+
+                        gantt.config.grid_width = 350;
+                        gantt.config.row_height = 40;
+                        gantt.config.task_height = 32;
+                        gantt.config.bar_height = 24;
+
+                        gantt.config.columns = [{
+                                name: "text",
+                                label: "Project Name",
+                                width: 200,
+                                tree: true
+                            },
+                            {
+                                name: "priority",
+                                label: "Priority",
+                                width: 70,
+                                align: "center"
+                            },
+                            {
+                                name: "status",
+                                label: "Status",
+                                width: 130,
+                                align: "center"
+                            },
+                            {
+                                name: "duration",
+                                label: "Duration",
+                                width: 60,
+                                align: "center"
+                            }
+                        ];
+
+                        gantt.templates.task_class = function(start, end, task) {
+                            return task.is_overdue ? "overdue" : "";
+                        };
+
+                        gantt.templates.tooltip_text = function(start, end, task) {
+                            return `<b>Project:</b> ${task.text}<br/>
+                                    <b>Status:</b> ${task.status}<br/>
+                                    <b>Priority:</b> ${task.priority}<br/>
+                                    <b>Duration:</b> ${task.duration} day(s)<br/>
+                                    <b>Progress:</b> ${Math.round(task.progress * 100)}%<br/>
+                                    <b>Start:</b> ${gantt.templates.tooltip_date_format(start)}<br/>
+                                    <b>End:</b> ${gantt.templates.tooltip_date_format(end)}
+                                    ${task.is_overdue ? '<br/><b style="color: #ef4444;">⚠️ OVERDUE</b>' : ''}`;
+                        };
+
+                        if (!window.projectTimelineGanttState.initialized) {
+                            gantt.init("gantt_here_project_timeline");
+                            window.projectTimelineGanttState.initialized = true;
+                            console.log('Project timeline Gantt initialized');
+                        }
+
+                        gantt.clearAll();
+                        gantt.parse(ganttData);
+
+                        if (typeof gantt.addMarker === 'function') {
+                            gantt.addMarker({
+                                start_date: new Date(),
+                                css: "today",
+                                text: "Today"
+                            });
+                        } else {
+                            console.warn('dhtmlxGantt marker plugin is unavailable; rendering without today marker');
+                        }
+
+                        console.log('Project timeline Gantt initialized successfully with', ganttData.data.length,
+                            'projects');
+
+                    } catch (error) {
+                        console.error('Error initializing Project timeline dhtmlxGantt:', error);
+
+                        const container = document.getElementById('gantt_here_project_timeline');
+                        if (container) {
+                            container.innerHTML = `
+                                <div class="flex flex-col items-center justify-center h-64 text-red-500 gap-4">
+                                    <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <h3 class="text-lg font-medium">Error loading timeline</h3>
+                                    <p class="text-sm">Please refresh the page or contact support</p>
+                                    <p class="text-xs">Error: ${error.message}</p>
+                                </div>
+                            `;
+                        }
+                    }
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Project timeline DOM ready, waiting for dhtmlxGantt...');
+                initializeGanttPage();
+            });
+
+            if (!window.projectTimelineGanttState.listenerAttached) {
+                document.addEventListener('livewire:navigated', function() {
+                    console.log('Livewire navigated, reinitializing project timeline gantt...');
+                    window.projectTimelineGanttState.initialized = false;
+                    setTimeout(initializeGanttPage, 100);
+                });
+                window.projectTimelineGanttState.listenerAttached = true;
             }
         </script>
     @endpush

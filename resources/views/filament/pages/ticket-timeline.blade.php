@@ -209,7 +209,7 @@
                 <!-- dhtmlxGantt Container -->
                 <div class="w-full">
                     @if (count($this->ganttData['data']) > 0)
-                        <div id="gantt_here" style="width:100%; height:600px;"></div>
+                        <div id="gantt_here_ticket_timeline" style="width:100%; height:600px;"></div>
                     @else
                         <div class="flex flex-col items-center justify-center h-64 text-gray-500 gap-4">
                             <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -254,7 +254,8 @@
         <script>
             window.ganttState = window.ganttState || {
                 initialized: false,
-                currentProjectId: '{{ $projectId }}'
+                currentProjectId: '{{ $projectId }}',
+                listenerAttached: false
             };
 
             function getGanttData() {
@@ -283,7 +284,7 @@
 
                 function check() {
                     attempts++;
-                    const container = document.getElementById('gantt_here');
+                    const container = document.getElementById('gantt_here_ticket_timeline');
                     if (container && container.offsetParent !== null) {
                         callback();
                     } else if (attempts < maxAttempts) {
@@ -297,7 +298,7 @@
             }
 
             function showErrorMessage(message = 'Error loading timeline') {
-                const container = document.getElementById('gantt_here');
+                const container = document.getElementById('gantt_here_ticket_timeline');
                 if (container) {
                     container.innerHTML = `
                             <div class="flex flex-col items-center justify-center h-64 text-gray-500 gap-4">
@@ -333,23 +334,29 @@
                 }
             });
 
-            document.addEventListener('livewire:navigated', function () {
-                console.log('Livewire navigated, reinitializing gantt...');
-                window.ganttState.currentProjectId = '{{ $projectId }}';
-                if (window.ganttState.initialized) {
-                    try {
-                        if (typeof gantt !== 'undefined' && gantt.clearAll) {
-                            gantt.clearAll();
-                        }
-                    } catch (e) {
-                        console.warn('Error clearing gantt:', e);
+            if (!window.ganttState.listenerAttached) {
+                document.addEventListener('livewire:navigated', function () {
+                    console.log('Livewire navigated, reinitializing ticket timeline gantt...');
+                    window.ganttState.currentProjectId = '{{ $projectId }}';
+                    if (!document.getElementById('gantt_here_ticket_timeline')) {
+                        return;
                     }
-                    window.ganttState.initialized = false;
-                }
-                setTimeout(() => {
-                    initializeGanttSafely();
-                }, 100);
-            });
+                    if (window.ganttState.initialized) {
+                        try {
+                            if (typeof gantt !== 'undefined' && gantt.clearAll) {
+                                gantt.clearAll();
+                            }
+                        } catch (e) {
+                            console.warn('Error clearing gantt:', e);
+                        }
+                        window.ganttState.initialized = false;
+                    }
+                    setTimeout(() => {
+                        initializeGanttSafely();
+                    }, 100);
+                });
+                window.ganttState.listenerAttached = true;
+            }
 
             function setupLivewireListeners() {
                 Livewire.on('refreshData', () => {
@@ -377,7 +384,7 @@
                         return;
                     }
 
-                    const container = document.getElementById('gantt_here');
+                    const container = document.getElementById('gantt_here_ticket_timeline');
                     if (!container) {
                         console.error('Gantt container not found');
                         throw new Error('Gantt container not found');
@@ -459,7 +466,7 @@
 
                     try {
                         if (!window.ganttState.initialized) {
-                            gantt.init("gantt_here");
+                            gantt.init("gantt_here_ticket_timeline");
                             window.ganttState.initialized = true;
                             console.log('Gantt initialized for the first time');
                         }
@@ -511,13 +518,15 @@
 
                         gantt.parse(processedData);
 
-                        // ✨ Add today marker line
-                        const today = new Date();
-                        gantt.addMarker({
-                            start_date: today,
-                            css: "today",
-                            text: "Today"
-                        });
+                        // Today marker line (marker plugin may not be available in this build)
+                        if (typeof gantt.addMarker === 'function') {
+                            const today = new Date();
+                            gantt.addMarker({
+                                start_date: today,
+                                css: "today",
+                                text: "Today"
+                            });
+                        }
 
                         console.log('dhtmlxGantt initialized successfully with', processedData.data.length,
                             'tasks and today marker');
