@@ -67,11 +67,20 @@ class MonthlyTicketTrendChart extends ChartWidget
         // Query tickets created per month
         $driver = DB::getDriverName();
 
-        $getYear = $driver === 'pgsql' ? 'EXTRACT(YEAR FROM created_at)' : 'YEAR(created_at)';
-        $getMonth = $driver === 'pgsql' ? 'EXTRACT(MONTH FROM created_at)' : 'MONTH(created_at)';
+        $getYear = match ($driver) {
+            'pgsql' => 'EXTRACT(YEAR FROM created_at)',
+            'sqlite' => "CAST(strftime('%Y', created_at) AS INTEGER)",
+            default => 'YEAR(created_at)',
+        };
 
-        $yearKey = $driver === 'pgsql' ? 'EXTRACT(YEAR FROM created_at)' : 'year';
-        $monthKey = $driver === 'pgsql' ? 'EXTRACT(MONTH FROM created_at)' : 'month';
+        $getMonth = match ($driver) {
+            'pgsql' => 'EXTRACT(MONTH FROM created_at)',
+            'sqlite' => "CAST(strftime('%m', created_at) AS INTEGER)",
+            default => 'MONTH(created_at)',
+        };
+
+        $yearKey = $getYear;
+        $monthKey = $getMonth;
 
         $ticketsQuery = Ticket::query()
             ->select(

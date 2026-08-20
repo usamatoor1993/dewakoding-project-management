@@ -34,6 +34,11 @@ class Leaderboard extends Page implements HasForms
         return 'Top contributors ranked by their overall activity and engagement';
     }
 
+    public static function canAccess(): bool
+    {
+        return (bool) (auth()->user()?->hasAnyRole(['super_admin', 'admin']) ?? false);
+    }
+
     public function setTimeRange(string $range): void
     {
         $this->timeRange = $range;

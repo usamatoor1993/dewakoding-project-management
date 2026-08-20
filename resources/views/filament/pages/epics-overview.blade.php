@@ -357,6 +357,13 @@
             <p class="text-sm text-gray-500 dark:text-gray-400">
                 This project doesn't have any epics yet. Create an epic to organize your tickets.
             </p>
+            <x-filament::button
+                color="primary"
+                icon="heroicon-m-plus"
+                wire:click="mountAction('create_epic')"
+            >
+                New Epic
+            </x-filament::button>
         </div>
     @endif
 </x-filament-panels::page>

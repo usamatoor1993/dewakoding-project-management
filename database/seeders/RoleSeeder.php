@@ -36,6 +36,20 @@ class RoleSeeder extends Seeder
             Permission::firstOrCreate(['name' => $permission]);
         }
 
+        // Permission untuk dashboard widgets
+        $widgets = [
+            'StatsOverview',
+            'TicketsPerProjectChart',
+            'UserStatisticsChart',
+            'MonthlyTicketTrendChart',
+            'ProjectTimeline',
+            'RecentActivityTable',
+        ];
+
+        foreach ($widgets as $widget) {
+            Permission::firstOrCreate(['name' => 'widget_' . $widget]);
+        }
+
         // Buat role super_admin, admin, member
         $superAdmin = Role::firstOrCreate(['name' => 'super_admin']);
         $admin = Role::firstOrCreate(['name' => 'admin']);
@@ -56,7 +70,7 @@ class RoleSeeder extends Seeder
                 'view_ticket_priority', 'view_any_ticket_priority',
                 'view_ticket_comment', 'view_any_ticket_comment',
                 'view_notification', 'view_any_notification',
-            ]);
+            ])->orWhere('name', 'like', 'widget_%');
         })->get();
         $member->syncPermissions($memberPermissions);
 

@@ -4,6 +4,10 @@ namespace App\Filament\Pages;
 
 use App\Models\Epic;
 use App\Models\Project;
+use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Collection;
@@ -52,6 +56,57 @@ class EpicsOverview extends Page
 
         $this->loadEpics();
         $this->expandedEpics = $this->epics->pluck('id')->toArray();
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('create_epic')
+                ->label('New Epic')
+                ->icon('heroicon-m-plus')
+                ->visible(fn (): bool => $this->selectedProjectId !== null)
+                ->schema([
+                    TextInput::make('name')
+                        ->required()
+                        ->maxLength(255)
+                        ->label('Epic Name'),
+                    TextInput::make('sort_order')
+                        ->numeric()
+                        ->default(0)
+                        ->label('Sort Order')
+                        ->helperText('Lower numbers appear first'),
+                    DatePicker::make('start_date')
+                        ->label('Start Date')
+                        ->nullable(),
+                    DatePicker::make('end_date')
+                        ->label('End Date')
+                        ->nullable(),
+                    RichEditor::make('description')
+                        ->columnSpanFull()
+                        ->fileAttachmentsDisk('public')
+                        ->fileAttachmentsDirectory('attachments')
+                        ->fileAttachmentsVisibility('public')
+                        ->nullable(),
+                ])
+                ->action(function (array $data): void {
+                    Epic::create([
+                        'project_id' => $this->selectedProjectId,
+                        'name' => $data['name'],
+                        'sort_order' => $data['sort_order'] ?? 0,
+                        'start_date' => $data['start_date'] ?? null,
+                        'end_date' => $data['end_date'] ?? null,
+                        'description' => $data['description'] ?? null,
+                    ]);
+
+                    $this->loadEpics();
+                    $this->expandedEpics = $this->epics->pluck('id')->toArray();
+
+                    Notification::make()
+                        ->title('Epic created')
+                        ->success()
+                        ->send();
+                }),
+        ];
     }
 
     public function loadAvailableProjects(): void

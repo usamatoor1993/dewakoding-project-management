@@ -163,9 +163,13 @@ class TicketResource extends Resource
                                 return $query->whereRaw('1 = 0');
                             }
 
-                            return $query->whereHas('projects', function ($query) use ($projectId) {
-                                $query->where('projects.id', $projectId);
-                            });
+                            return $query
+                                ->whereHas('projects', function ($query) use ($projectId) {
+                                    $query->where('projects.id', $projectId);
+                                })
+                                ->whereDoesntHave('roles', function ($query) {
+                                    $query->where('name', 'super_admin');
+                                });
                         }
                     )
                     ->searchable()

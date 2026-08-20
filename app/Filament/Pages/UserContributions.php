@@ -31,6 +31,12 @@ class UserContributions extends Page implements HasForms
     {
         return 'Track daily activity and contributions across the team';
     }
+
+    public static function canAccess(): bool
+    {
+        return (bool) (auth()->user()?->hasAnyRole(['super_admin', 'admin']) ?? false);
+    }
+
     public Collection $users;
     public ?string $selectedUserId = null;
     public ?User $selectedUser = null;
