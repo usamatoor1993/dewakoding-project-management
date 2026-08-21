@@ -62,11 +62,11 @@ class RoleSeeder extends Seeder
         $adminPermissions = Permission::whereNotIn('name', ['delete_user'])->get();
         $admin->syncPermissions($adminPermissions);
 
-        // member: hanya view/view_any project, ticket, ticket_priority, ticket_comment, notification, dan update ticket (untuk drag & drop)
+        // member: hanya view/view_any project, ticket, ticket_priority, ticket_comment, notification, create/update ticket
         $memberPermissions = Permission::where(function($q) {
             $q->whereIn('name', [
                 'view_project', 'view_any_project',
-                'view_ticket', 'view_any_ticket', 'update_ticket',
+                'view_ticket', 'view_any_ticket', 'create_ticket', 'update_ticket',
                 'view_ticket_priority', 'view_any_ticket_priority',
                 'view_ticket_comment', 'view_any_ticket_comment',
                 'view_notification', 'view_any_notification',
