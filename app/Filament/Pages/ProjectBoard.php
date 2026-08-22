@@ -499,7 +499,7 @@ class ProjectBoard extends Page
             $fileName = Str::slug($fileName, '_').'.xlsx';
             $export = new TicketsExport($tickets, $selectedColumns);
             Excel::store($export, 'exports/'.$fileName, 'public');
-            $downloadUrl = asset('storage/exports/'.$fileName);
+            $downloadUrl = url('storage/exports/'.$fileName);
             $this->js("
                 fetch('{$downloadUrl}')
                     .then(response => response.blob())
