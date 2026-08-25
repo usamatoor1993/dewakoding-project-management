@@ -43,7 +43,7 @@ class AdminPanelProvider extends PanelProvider
             ->darkMode()
             ->defaultThemeMode(ThemeMode::Dark)
             ->colors([
-                'primary' => Color::hex('#4aa5f0'),
+                'primary' => Color::hex('#0052CC'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->readOnlyRelationManagersOnResourceViewPagesByDefault(false)
