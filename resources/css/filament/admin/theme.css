@@ -20,6 +20,17 @@
 	--jira-text-subtle: #6B778C;
 }
 
+/* ============================ SIDEBAR BRAND LOGO ============================ */
+.fi-sidebar-logo img {
+	height: 2rem;
+	width: auto;
+}
+
+.dark .fi-sidebar-logo img {
+	height: 2rem;
+	width: auto;
+}
+
 /* ============================ LIGHT MODE ============================ */
 .fi-body {
 	background-color: #F4F5F7;

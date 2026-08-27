@@ -34,14 +34,18 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName('Bytes')
-            ->brandLogo(asset('img/bytes/bytes-logo-blue.png'))
-            ->darkModeBrandLogo(asset('img/bytes/bytes-logo-write.png'))
+            ->brandLogo(new \Illuminate\Support\HtmlString(
+                '<img src="' . asset('img/bytes/bytes-logo-blue.png') . '" alt="Bytes" style="height: 2rem; width: auto;" /><span class="fi-brand-name ms-2 text-lg font-bold tracking-tight" style="color: inherit;">Bytes</span>'
+            ))
+            ->darkModeBrandLogo(new \Illuminate\Support\HtmlString(
+                '<img src="' . asset('img/bytes/bytes-logo-white.png') . '" alt="Bytes" style="height: 2rem; width: auto;" /><span class="fi-brand-name ms-2 text-lg font-bold tracking-tight" style="color: white;">Bytes</span>'
+            ))
             ->brandLogoHeight('2rem')
             ->favicon(asset('img/bytes/bytes-logo-blue.png'))
             ->login(Login::class)
             // ->registration()
             ->darkMode()
-            ->defaultThemeMode(ThemeMode::Dark)
+            ->defaultThemeMode(ThemeMode::Light)
             ->colors([
                 'primary' => Color::hex('#0052CC'),
             ])
