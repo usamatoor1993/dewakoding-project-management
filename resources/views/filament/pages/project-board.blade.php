@@ -666,13 +666,11 @@
                                                 @endif
 
                                                 <a
-                                                    href="{{ \App\Filament\Resources\Tickets\TicketResource::getUrl('view', ['record' => $ticket->id]) }}"
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    onclick="event.preventDefault(); window.open(this.href, '_blank'); return false;"
+                                                    href="#"
+                                                    wire:click.prevent="showTicketDetails({{ $ticket->id }})"
                                                     class="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                                                 >
-                                                    <x-heroicon-m-arrow-top-right-on-square class="w-3.5 h-3.5" />
+                                                    <x-heroicon-o-eye class="w-3.5 h-3.5" />
                                                 </a>
                                             </div>
                                         </div>

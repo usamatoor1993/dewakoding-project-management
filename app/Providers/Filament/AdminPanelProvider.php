@@ -83,6 +83,7 @@ class AdminPanelProvider extends PanelProvider
             ->passwordReset()
             ->emailVerification()
             ->profile(\App\Filament\Pages\Auth\EditProfile::class, isSimple: false)
+            ->sidebarWidth('16rem')
             ->viteTheme('resources/css/filament/admin/theme.css');
 
         return $panel;

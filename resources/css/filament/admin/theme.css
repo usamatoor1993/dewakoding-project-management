@@ -115,8 +115,20 @@
 	border-radius: 4px;
 }
 
-/* ================================================================== */
-/*  LOGIN / AUTH PAGE                                                 */
+/* ============================ CONTENT AREA ============================ */
+.fi-main {
+	padding-left: 1rem;
+	padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+	.fi-main {
+		padding-left: 1.25rem;
+		padding-right: 1.25rem;
+	}
+}
+
+/* ============================ LOGIN / AUTH PAGE                                                 */
 /* ================================================================== */
 
 .fi-simple-layout {
