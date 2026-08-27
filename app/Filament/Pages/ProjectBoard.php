@@ -289,7 +289,7 @@ class ProjectBoard extends Page
         }
 
         $url = TicketResource::getUrl('view', ['record' => $ticketId]);
-        $this->js("window.open('{$url}', '_blank')");
+        $this->redirect($url);
     }
 
     public function closeTicketDetails(): void

@@ -22,8 +22,20 @@ return new class extends Migration
         // Insert default priorities
         DB::table('ticket_priorities')->insert([
             [
-                'name' => 'Low',
-                'color' => '#10B981', // Green
+                'name' => 'Blocker',
+                'color' => '#7C3AED', // Purple
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Urgent',
+                'color' => '#F97316', // Orange
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'High',
+                'color' => '#EF4444', // Red
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -34,8 +46,8 @@ return new class extends Migration
                 'updated_at' => now(),
             ],
             [
-                'name' => 'High',
-                'color' => '#EF4444', // Red
+                'name' => 'Low',
+                'color' => '#10B981', // Green
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
