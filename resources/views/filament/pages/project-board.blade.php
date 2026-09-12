@@ -278,249 +278,73 @@
         <div
             x-data="{
                 draggingTicket: null,
-                isTouchDevice: false,
-                touchStartX: 0,
-                touchStartY: 0,
-                scrollStartX: 0,
-                columnScrollPositions: {},
+                dragInitialized: false,
 
                 moveTicketToStatus(ticketId, statusId) {
-                    $wire.call('moveTicket', parseInt(ticketId), parseInt(statusId));
-                },
-
-                saveScrollPositions() {
-                    const columns = document.querySelectorAll('.status-column .overflow-y-auto');
-                    columns.forEach((column, index) => {
-                        this.columnScrollPositions[index] = column.scrollTop;
-                    });
-                },
-
-                restoreScrollPositions() {
-                    const columns = document.querySelectorAll('.status-column .overflow-y-auto');
-                    columns.forEach((column, index) => {
-                        if (this.columnScrollPositions[index] !== undefined) {
-                            column.scrollTop = this.columnScrollPositions[index];
-                        }
-                    });
+                    $wire.moveTicket(parseInt(ticketId), parseInt(statusId));
                 },
 
                 init() {
-                    this.$nextTick(() => {
-                        this.attachAllEventListeners();
-                        this.setupTouchScrolling();
-                        this.isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-                        this.setupPageVisibilityListener();
-                    });
-                },
+                    if (this.dragInitialized) return;
+                    this.dragInitialized = true;
 
-                setupPageVisibilityListener() {
-                    document.addEventListener('visibilitychange', () => {
-                        if (!document.hidden) {
-                            this.saveScrollPositions();
-                            setTimeout(() => {
-                                this.attachAllEventListeners();
-                                this.restoreScrollPositions();
-                            }, 100);
+                    const board = document.getElementById('board-container');
+                    if (!board) return;
+
+                    board.addEventListener('dragstart', (e) => {
+                        const card = e.target.closest('.ticket-card');
+                        if (!card) return;
+                        this.draggingTicket = card.getAttribute('data-ticket-id');
+                        card.classList.add('opacity-50');
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', card.getAttribute('data-ticket-id'));
+                    }, true);
+
+                    board.addEventListener('dragend', (e) => {
+                        const card = e.target.closest('.ticket-card');
+                        if (card) card.classList.remove('opacity-50');
+                        this.draggingTicket = null;
+                        document.querySelectorAll('.status-column').forEach(c => c.classList.remove('bg-primary-50/50', 'dark:bg-primary-950/50'));
+                    }, true);
+
+                    board.addEventListener('dragover', (e) => {
+                        const col = e.target.closest('.status-column');
+                        if (!col) return;
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                    });
+
+                    board.addEventListener('dragenter', (e) => {
+                        const col = e.target.closest('.status-column');
+                        if (!col) return;
+                        e.preventDefault();
+                        col.classList.add('bg-primary-50/50', 'dark:bg-primary-950/50');
+                    });
+
+                    board.addEventListener('dragleave', (e) => {
+                        const col = e.target.closest('.status-column');
+                        if (!col) return;
+                        const rect = col.getBoundingClientRect();
+                        if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+                            col.classList.remove('bg-primary-50/50', 'dark:bg-primary-950/50');
                         }
                     });
 
-                    window.addEventListener('focus', () => {
-                        this.saveScrollPositions();
-                        setTimeout(() => {
-                            this.attachAllEventListeners();
-                            this.restoreScrollPositions();
-                        }, 100);
-                    });
+                    board.addEventListener('drop', (e) => {
+                        const col = e.target.closest('.status-column');
+                        if (!col) return;
+                        e.preventDefault();
+                        col.classList.remove('bg-primary-50/50', 'dark:bg-primary-950/50');
 
-                    window.addEventListener('popstate', () => {
-                        this.saveScrollPositions();
-                        setTimeout(() => {
-                            this.attachAllEventListeners();
-                            this.restoreScrollPositions();
-                        }, 200);
-                    });
-
-                    document.addEventListener('livewire:navigated', () => {
-                        this.saveScrollPositions();
-                        setTimeout(() => {
-                            this.attachAllEventListeners();
-                            this.restoreScrollPositions();
-                        }, 300);
-                    });
-
-                    document.addEventListener('livewire:load', () => {
-                        this.saveScrollPositions();
-                        setTimeout(() => {
-                            this.attachAllEventListeners();
-                            this.restoreScrollPositions();
-                        }, 100);
-                    });
-
-                    document.addEventListener('livewire:updated', () => {
-                        this.saveScrollPositions();
-                        setTimeout(() => {
-                            this.attachAllEventListeners();
-                            this.restoreScrollPositions();
-                        }, 100);
-                    });
-
-                    window.addEventListener('ticket-updated', () => {
-                        this.saveScrollPositions();
-                        setTimeout(() => {
-                            this.attachAllEventListeners();
-                            this.restoreScrollPositions();
-                        }, 150);
-                    });
-
-                    setInterval(() => {
-                        if (document.visibilityState === 'visible') {
-                            this.saveScrollPositions();
-                            this.ensureDragDropInitialized();
-                            this.restoreScrollPositions();
+                        const ticketId = this.draggingTicket || e.dataTransfer.getData('text/plain');
+                        if (ticketId) {
+                            this.moveTicketToStatus(ticketId, col.getAttribute('data-status-id'));
+                            this.draggingTicket = null;
                         }
-                    }, 2000);
-                },
-
-                ensureDragDropInitialized() {
-                    this.attachAllEventListeners();
-                },
-
-                setupTouchScrolling() {
-                    const container = document.getElementById('board-container');
-                    if (!container) return;
-
-                    container.addEventListener('touchstart', (e) => {
-                        this.touchStartX = e.touches[0].clientX;
-                        this.touchStartY = e.touches[0].clientY;
-                        this.scrollStartX = container.scrollLeft;
-                    }, { passive: true });
-
-                    container.addEventListener('touchmove', (e) => {
-                        if (e.touches.length !== 1) return;
-                        const touchX = e.touches[0].clientX;
-                        const touchY = e.touches[0].clientY;
-                        const moveX = this.touchStartX - touchX;
-                        const moveY = this.touchStartY - touchY;
-                        if (Math.abs(moveX) > Math.abs(moveY)) {
-                            e.preventDefault();
-                            container.scrollLeft = this.scrollStartX + moveX;
-                        }
-                    }, { passive: false });
-                },
-
-                attachAllEventListeners() {
-                    @if(!$this->canMoveTickets())
-                        return;
-                    @endif
-
-                    const tickets = document.querySelectorAll('.ticket-card');
-                    tickets.forEach(ticket => {
-                        if (ticket.dataset.boardBound === 'true') return;
-                        ticket.dataset.boardBound = 'true';
-                        ticket.setAttribute('draggable', true);
-
-                        ticket.addEventListener('dragstart', (e) => {
-                            this.draggingTicket = ticket.getAttribute('data-ticket-id');
-                            ticket.classList.add('opacity-50');
-                            e.dataTransfer.effectAllowed = 'move';
-                        });
-
-                        ticket.addEventListener('dragend', () => {
-                            ticket.classList.remove('opacity-50');
-                            this.draggingTicket = null;
-                        });
-
-                        let longPressTimer;
-                        let isDragging = false;
-                        let originalColumn;
-
-                        ticket.addEventListener('touchstart', (e) => {
-                            if (isDragging) return;
-                            longPressTimer = setTimeout(() => {
-                                originalColumn = ticket.closest('.status-column');
-                                this.draggingTicket = ticket.getAttribute('data-ticket-id');
-                                ticket.classList.add('opacity-50', 'relative', 'z-30');
-                                isDragging = true;
-                                ticket.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
-                            }, 500);
-                        }, { passive: true });
-
-                        ticket.addEventListener('touchmove', (e) => {
-                            if (!isDragging) { clearTimeout(longPressTimer); return; }
-                            const touch = e.touches[0];
-                            const columns = document.querySelectorAll('.status-column');
-                            columns.forEach(column => {
-                                const rect = column.getBoundingClientRect();
-                                if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
-                                    touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
-                                    column.classList.add('bg-primary-50', 'dark:bg-primary-950');
-                                } else {
-                                    column.classList.remove('bg-primary-50', 'dark:bg-primary-950');
-                                }
-                            });
-                        });
-
-                        ticket.addEventListener('touchend', (e) => {
-                            clearTimeout(longPressTimer);
-                            if (!isDragging) return;
-                            isDragging = false;
-                            ticket.classList.remove('opacity-50', 'relative', 'z-30');
-                            ticket.style.boxShadow = '';
-                            const touch = e.changedTouches[0];
-                            const columns = document.querySelectorAll('.status-column');
-                            let targetColumn = null;
-                            columns.forEach(column => {
-                                const rect = column.getBoundingClientRect();
-                                if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
-                                    touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
-                                    targetColumn = column;
-                                }
-                                column.classList.remove('bg-primary-50', 'dark:bg-primary-950');
-                            });
-                            if (targetColumn && targetColumn !== originalColumn) {
-                                this.moveTicketToStatus(this.draggingTicket, targetColumn.getAttribute('data-status-id'));
-                            }
-                            this.draggingTicket = null;
-                        });
-
-                        ticket.addEventListener('touchcancel', () => {
-                            clearTimeout(longPressTimer);
-                            if (!isDragging) return;
-                            isDragging = false;
-                            ticket.classList.remove('opacity-50', 'relative', 'z-30');
-                            ticket.style.boxShadow = '';
-                            this.draggingTicket = null;
-                            document.querySelectorAll('.status-column').forEach(c => c.classList.remove('bg-primary-50', 'dark:bg-primary-950'));
-                        });
-                    });
-
-                    const columns = document.querySelectorAll('.status-column');
-                    columns.forEach(column => {
-                        if (column.dataset.boardBound === 'true') return;
-                        column.dataset.boardBound = 'true';
-                        column.addEventListener('dragover', (e) => {
-                            e.preventDefault();
-                            e.dataTransfer.dropEffect = 'move';
-                            column.classList.add('bg-primary-50/50', 'dark:bg-primary-950/50');
-                        });
-                        column.addEventListener('dragleave', () => {
-                            column.classList.remove('bg-primary-50/50', 'dark:bg-primary-950/50');
-                        });
-                        column.addEventListener('drop', (e) => {
-                            e.preventDefault();
-                            column.classList.remove('bg-primary-50/50', 'dark:bg-primary-950/50');
-                            if (this.draggingTicket) {
-                                this.moveTicketToStatus(this.draggingTicket, column.getAttribute('data-status-id'));
-                                this.draggingTicket = null;
-                            }
-                        });
                     });
                 }
             }"
             x-init="init()"
-            @ticket-moved.window="init()"
-            @ticket-updated.window="init()"
-            @refresh-board.window="init()"
             wire:key="board-container-{{ $selectedProject->id }}"
             class="relative overflow-x-auto pb-6 {{ !$this->canMoveTickets() ? 'view-only-mode' : '' }}"
             id="board-container"
@@ -596,21 +420,30 @@
                             @foreach ($status->tickets as $index => $ticket)
                                 <div
                                     wire:key="ticket-{{ $status->id }}-{{ $ticket->id }}"
-                                    class="ticket-card bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 cursor-move hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+                                    class="ticket-card bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 cursor-grab active:cursor-grabbing hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
                                     data-ticket-id="{{ $ticket->id }}"
+                                    draggable="true"
                                     x-show="{{ $index }} < visibleTickets"
                                 >
                                     <div class="p-3">
-                                        {{-- Top row: key + priority --}}
+                                        {{-- Top row: key + due date + priority --}}
                                         <div class="flex items-center justify-between mb-1.5">
                                             <span class="text-xs font-mono text-gray-400 dark:text-gray-500">
                                                 {{ $ticket->uuid }}
                                             </span>
-                                            @if ($ticket->priority)
-                                                <span class="text-xs px-1.5 py-0.5 rounded font-medium text-white" style="background-color: {{ $ticket->priority->color }};">
-                                                    {{ $ticket->priority->name }}
-                                                </span>
-                                            @endif
+                                            <div class="flex items-center gap-1.5">
+                                                @if ($ticket->due_date)
+                                                    <span class="inline-flex items-center gap-0.5 text-xs {{ $ticket->due_date->isPast() ? 'text-red-600 dark:text-red-400' : 'text-gray-400 dark:text-gray-500' }}">
+                                                        <x-heroicon-o-calendar class="w-3 h-3" />
+                                                        {{ $ticket->due_date->format('d M') }}
+                                                    </span>
+                                                @endif
+                                                @if ($ticket->priority)
+                                                    <span class="text-xs px-1.5 py-0.5 rounded font-medium text-white" style="background-color: {{ $ticket->priority->color }};">
+                                                        {{ $ticket->priority->name }}
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </div>
 
                                         {{-- Title --}}
@@ -628,17 +461,8 @@
                                             </div>
                                         @endif
 
-                                        {{-- Bottom row: due date + assignee --}}
-                                        <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-100 dark:border-gray-700/50">
-                                            <div class="flex items-center gap-2">
-                                                @if ($ticket->due_date)
-                                                    <span class="inline-flex items-center gap-1 text-xs {{ $ticket->due_date->isPast() ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400' }}">
-                                                        <x-heroicon-o-calendar class="w-3 h-3" />
-                                                        {{ $ticket->due_date->format('MMM d') }}
-                                                    </span>
-                                                @endif
-                                            </div>
-
+                                        {{-- Bottom row: assignee --}}
+                                        <div class="flex items-center justify-end mt-2 pt-2 border-t border-gray-100 dark:border-gray-700/50">
                                             <div class="flex items-center gap-1.5">
                                                 @if ($ticket->assignees->isNotEmpty())
                                                     @foreach($ticket->assignees->take(2) as $assignee)
